@@ -1,11 +1,13 @@
 import requests
 import random
 import os
+import json
 
 
 def lambda_handler(event, context):
     try:
-        user_text = event["result"]["text"]
+        resp = json.loads(event["body"])
+        user_text = resp["message"]["text"]
         if user_text == "네" or user_text == "다시":
             video_list = crawl_url()
             send_message(video_list)
@@ -23,7 +25,7 @@ def send_message(video_list=None):
         msg = f"오늘 조회가능한 횟수를 초과했어요!!"
     else:
         idx = random.choice(range(len(video_list)))
-        msg = "✨오늘 저녁메뉴 추천✨\n\n🍳" + video_list[idx] + "\n\n메뉴를 다시 찾아볼까요?🥺\n('네' 또는 '다시' 입력)\n"
+        msg = "✨오늘 저녁메뉴 추천✨\n\n🍳" + video_list[idx] + "\n\n메뉴를 다시 찾아볼까요?🥺\n('네' 또는 '다시' 입력)\n\n\n"
     url = f"https://api.telegram.org/bot{token}/sendMessage?chat_id={chat_id}&text={msg}"
     resp = requests.get(url)
 
