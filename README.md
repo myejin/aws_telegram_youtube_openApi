@@ -16,6 +16,7 @@ pass
 #### :ramen: 사전 준비<br>
 - `Telegram bot 생성 + chat_id 파싱`
 - `YouTube Data API v3 KEY 발급`
+- `Sever-less 컴퓨팅 자원  예) AWS Lambda`
 <br>
 
 #### :curry: 실행 방법<br>
