@@ -6,13 +6,17 @@ import json
 
 def lambda_handler(event, context):
     try:
-        resp = json.loads(event["body"])
-        user_text = resp["message"]["text"]
-        if user_text == "메뉴검색" or user_text == "네" or user_text == "ㅇㅇ":
+        if "detail-type" in event and event["detail-type"] == "Scheduled Event":
             video_list = crawl_url()
             send_message(video_list)
         else:
-            send_message(msg="greeting")
+            resp = json.loads(event["body"])
+            user_text = resp["message"]["text"]
+            if user_text == "메뉴검색" or user_text == "네" or user_text == "ㅇㅇ":
+                video_list = crawl_url()
+                send_message(video_list)
+            else:
+                send_message(msg="greeting")
 
     except Exception as e:
         send_message(msg=str(e))
