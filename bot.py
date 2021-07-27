@@ -1,5 +1,4 @@
 import requests
-import random
 import os
 import json
 
@@ -7,14 +6,14 @@ import json
 def lambda_handler(event, context):
     try:
         if "detail-type" in event and event["detail-type"] == "Scheduled Event":
-            video_list = crawl_url()
-            send_message(video_list)
+            video_set = crawl_url()
+            send_message(video_set)
         else:
             resp = json.loads(event["body"])
             user_text = resp["message"]["text"]
             if user_text == "메뉴검색" or user_text == "네" or user_text == "ㅇㅇ":
-                video_list = crawl_url()
-                send_message(video_list)
+                video_set = crawl_url()
+                send_message(video_set)
             else:
                 send_message(msg="greeting")
 
@@ -22,7 +21,7 @@ def lambda_handler(event, context):
         send_message(msg=str(e))
 
 
-def send_message(video_list=None, msg=None):
+def send_message(video_set=None, msg=None):
     token = os.environ["BOT_TOKEN"]
     chat_id = os.environ["ChatId"]
 
@@ -31,10 +30,8 @@ def send_message(video_list=None, msg=None):
     elif msg == "greeting":
         msg = f"오늘의 메뉴가 궁금하세요?👩‍🍳\n('메뉴검색' 또는 '네' 또는 'ㅇㅇ' 입력)"
     elif msg is None:
-        idx = random.choice(range(len(video_list)))
-        msg = (
-            "✨오늘 저녁메뉴 추천✨\n\n🍳" + video_list[idx] + "\n\n메뉴를 다시 찾아볼까요?🥺\n('메뉴검색' 또는 '네' 또는 'ㅇㅇ' 입력)"
-        )
+        video_pop = video_set.pop()
+        msg = f"✨오늘 저녁메뉴 추천✨\n\n🍳{video_pop}\n\n메뉴를 다시 찾아볼까요?🥺\n('메뉴검색' 또는 '네' 또는 'ㅇㅇ' 입력)"
     else:
         msg = "시스템 오류 발생!!"
     url = f"https://api.telegram.org/bot{token}/sendMessage?chat_id={chat_id}&text={msg}"
@@ -42,7 +39,7 @@ def send_message(video_list=None, msg=None):
 
 
 def crawl_url():
-    video_list = []
+    video_set = set()
     api_key = os.environ["KEY"]
     nextPageToken = ""
     finished = False
@@ -62,5 +59,5 @@ def crawl_url():
         for item in items:
             videoId = item["id"]["videoId"]
             url = f"https://www.youtube.com/watch?v={videoId}"
-            video_list.append(url)
-    return video_list
+            video_set.add(url)
+    return video_set
