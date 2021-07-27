@@ -23,6 +23,8 @@ def lambda_handler(event, context):
                     send_message(chat_id, video_set)
                 else:
                     send_message(chat_id, msg="greeting")
+            elif user_text == os.environ["HIDDEN_MSG"]:
+                send_message(os.environ["ME"], msg=f"[{user_text}]\nID : {chat_id}")
 
     except Exception as e:
         send_message(chat_id, msg=str(e))
@@ -38,6 +40,8 @@ def send_message(chat_id, video_set=None, msg=None):
     elif msg is None:
         video_pop = video_set.pop()
         msg = f"✨오늘 저녁메뉴 추천✨\n\n🍳{video_pop}\n\n메뉴를 다시 찾아볼까요?🥺\n('메뉴검색' 또는 '네' 또는 'ㅇㅇ' 입력)"
+    elif msg[0] == "[":
+        pass
     else:
         msg = "시스템 오류 발생!!"
     url = f"https://api.telegram.org/bot{token}/sendMessage?chat_id={chat_id}&text={msg}"
