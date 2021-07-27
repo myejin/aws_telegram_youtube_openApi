@@ -4,26 +4,32 @@ import json
 
 
 def lambda_handler(event, context):
+    chat_id = ""
+    id_list = json.loads(os.environ["ID_LIST"]).values()
     try:
         if "detail-type" in event and event["detail-type"] == "Scheduled Event":
             video_set = crawl_url()
-            send_message(video_set)
+            for id in id_list:
+                chat_id = id
+                send_message(chat_id, video_set)
         else:
             resp = json.loads(event["body"])
             user_text = resp["message"]["text"]
-            if user_text == "메뉴검색" or user_text == "네" or user_text == "ㅇㅇ":
-                video_set = crawl_url()
-                send_message(video_set)
-            else:
-                send_message(msg="greeting")
+            chat_id = resp["message"]["from"]["id"]
+
+            if chat_id in id_list:
+                if user_text == "메뉴검색" or user_text == "네" or user_text == "ㅇㅇ":
+                    video_set = crawl_url()
+                    send_message(chat_id, video_set)
+                else:
+                    send_message(chat_id, msg="greeting")
 
     except Exception as e:
-        send_message(msg=str(e))
+        send_message(chat_id, msg=str(e))
 
 
-def send_message(video_set=None, msg=None):
+def send_message(chat_id, video_set=None, msg=None):
     token = os.environ["BOT_TOKEN"]
-    chat_id = os.environ["ChatId"]
 
     if msg == "'items'":
         msg = f"오늘 조회가능한 횟수를 초과했어요!!😉"
