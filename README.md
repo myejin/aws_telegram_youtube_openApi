@@ -1,8 +1,10 @@
 ## 백파더 메뉴추천봇:iphone:
 #### :fork_and_knife: 소개<br>
 ```
-pass
+AWS Lambda 활용한 텔레그램 챗봇
 ```
+<img width="500" alt="데모이미지" src="https://user-images.githubusercontent.com/42771578/127122689-f03b5b30-d8d6-481d-9bcf-cac449f4eff3.PNG">
+
 <br>
 
 #### :rice_ball: 개발 배경<br>
