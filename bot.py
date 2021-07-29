@@ -1,4 +1,5 @@
 import requests
+import boto3
 import os
 import json
 from datetime import datetime
@@ -9,7 +10,7 @@ def lambda_handler(event, context):
     id_list = json.loads(os.environ["ID_LIST"]).values()
     try:
         if "detail-type" in event and event["detail-type"] == "Scheduled Event":
-            video_set = crawl_url()
+            video_set = get_videoset()
             for id in id_list:
                 chat_id = id
                 send_message(chat_id, video_set)
@@ -20,8 +21,11 @@ def lambda_handler(event, context):
 
             if chat_id in id_list:
                 user_text = user_text.strip()
-                if user_text == "검색" or user_text == "네" or user_text == "ㅇㅇ":
-                    video_set = crawl_url()
+                if user_text == "업데이트" and chat_id == int(os.environ["ME"]):
+                    update_list()
+                    send_message(chat_id, msg="update")
+                elif user_text == "네" or user_text == "ㅇㅇ":
+                    video_set = get_videoset()
                     send_message(chat_id, video_set)
                     send_message(chat_id, msg="feedback")
                 elif user_text[-2:] == "검색":
@@ -45,13 +49,15 @@ def send_message(chat_id, video_set=None, msg=None):
     if msg == "'items'":
         msg = f"오늘 조회가능한 횟수를 초과했어요!!😉"
     elif msg == "greeting":
-        msg = f"오늘의 메뉴가 궁금하세요?👩‍🍳\n('<재료이름> 검색' 또는 '네' 또는 'ㅇㅇ' 입력)"
+        msg = f"오늘의 메뉴가 궁금하세요?👩‍🍳\n\t랜덤검색 - '네' 또는 'ㅇㅇ' 입력\n\t메뉴검색 - '김치찌개 검색'"
     elif msg == "feedback":
         msg = f"만족/불만족 하셨다면 후기📝를 남겨주세요.\n[작성예시] *별 안에 후기를 써주세요.*"
+    elif msg == "update":
+        msg = "업데이트 완료"
     elif msg is None:
         video_pop = video_set.pop()
         now = time_message()
-        msg = f"✨오늘 {now}메뉴 추천✨\n\n🍳{video_pop}\n\n메뉴를 다시 찾아볼까요?🥺\n('<재료이름> 검색' 또는 '네' 또는 'ㅇㅇ' 입력)"
+        msg = f"✨오늘 {now}메뉴 추천✨\n\n🍳{video_pop}\n\n메뉴를 다시 찾아볼까요?🥺\n\t랜덤검색 - '네' 또는 'ㅇㅇ' 입력\n\t메뉴검색 - '김치찌개 검색'"
     elif msg[0] == "*" and msg[-1] == "*":
         msg = "📨 사용자 후기\n\n" + msg[1:-1]
     elif msg[0] == "[":
@@ -62,14 +68,27 @@ def send_message(chat_id, video_set=None, msg=None):
     resp = requests.get(url)
 
 
-def crawl_url(query="간단+재료"):
-    video_set = set()
+def crawl_url(query=None):
+    video_list = []
     api_key = os.environ["KEY"]
+
+    """특정메뉴 검색, 2개만 반환"""
+    if query is not None:
+        url = f"https://www.googleapis.com/youtube/v3/search?key={api_key}&part=id&channelId=UCyn-K7rZLXjGl7VXGweIlcA&maxResults=2&q={query}&type=video"
+        resp = requests.get(url).json()
+        items = resp["items"]
+
+        for item in items:
+            videoId = item["id"]["videoId"]
+            url = f"https://www.youtube.com/watch?v={videoId}"
+            video_list.append(url)
+        return set(video_list)
+
+    """업데이트 시 전체 크롤링"""
     nextPageToken = ""
     finished = False
-
     while not finished:
-        url = f"https://www.googleapis.com/youtube/v3/search?key={api_key}&part=id&channelId=UCyn-K7rZLXjGl7VXGweIlcA&maxResults=100&q={query}&type=video"
+        url = f"https://www.googleapis.com/youtube/v3/search?key={api_key}&part=id&channelId=UCyn-K7rZLXjGl7VXGweIlcA&maxResults=100&q=간단+재료&type=video"
         if nextPageToken:
             url += f"&pageToken={nextPageToken}"
 
@@ -83,12 +102,13 @@ def crawl_url(query="간단+재료"):
         for item in items:
             videoId = item["id"]["videoId"]
             url = f"https://www.youtube.com/watch?v={videoId}"
-            video_set.add(url)
-    return video_set
+            video_list.append(url)
+
+    return video_list
 
 
 def time_message():
-    hour = datetime.now().hour
+    hour = (datetime.now().hour + 9) % 24
     if 3 <= hour < 10:
         return "아침"
     elif 10 <= hour < 15:
@@ -97,3 +117,21 @@ def time_message():
         return "저녁"
     else:
         return "야식"
+
+
+def get_videoset():
+    s3 = boto3.client("s3")
+
+    obj = s3.get_object(Bucket=os.environ["BUCKET"], Key=os.environ["BUCKET_KEY"])
+    data = json.loads(obj["Body"].read())
+    return set(data["urls"])
+
+
+def update_list():
+    s3 = boto3.client("s3")
+    urls = crawl_url()
+    Body = json.dumps({"urls": urls})
+    s3.put_object(
+        Bucket=os.environ["BUCKET"], Body=Body, Key=os.environ["BUCKET_KEY"], ContentType="json"
+    )
+    return Body
