@@ -27,18 +27,18 @@ def lambda_handler(event, context):
                     send_message(chat_id, msg="update")
                 elif user_text == "네" or user_text == "ㅇㅇ":
                     video_list = get_video()
-                    send_message(chat_id, video_list)
-                    send_message(chat_id, msg="feedback")
+                    send_message(chat_id, video_list, msg="feedback")
                 elif user_text[-2:] == "검색":
                     video_list = crawl_url(user_text[:-2].strip())
-                    send_message(chat_id, video_list)
-                    send_message(chat_id, msg="feedback")
+                    send_message(chat_id, video_list, msg="feedback")
                 elif user_text[0] == "*" and user_text[-1] == "*":
                     send_message(os.environ["ME"], msg=user_text)
+                    send_message(chat_id, msg="review")
                 else:
                     send_message(chat_id, msg="greeting")
             elif user_text == os.environ["HIDDEN_MSG"]:
                 send_message(os.environ["ME"], msg=f"[{user_text}]\nID : {chat_id}")
+                send_message(chat_id, msg="register")
 
     except Exception as e:
         send_message(chat_id, msg=str(e))
@@ -46,6 +46,13 @@ def lambda_handler(event, context):
 
 def send_message(chat_id, video_list=None, msg=None):
     token = os.environ["BOT_TOKEN"]
+
+    if video_list:
+        choice = random.choice(video_list)
+        now = time_message()
+        search_msg = f"✨오늘 {now}메뉴 추천✨\n\n🍳{choice}\n\n메뉴를 다시 찾아볼까요?🥺\n\t랜덤검색 - '네' 또는 'ㅇㅇ' 입력\n\t메뉴검색 - '김치찌개 검색'"
+        url = f"https://api.telegram.org/bot{token}/sendMessage?chat_id={chat_id}&text={search_msg}"
+        resp = requests.get(url)
 
     if msg == "'items'":
         msg = f"오늘 조회가능한 횟수를 초과했어요!!😉"
@@ -55,10 +62,10 @@ def send_message(chat_id, video_list=None, msg=None):
         msg = f"만족/불만족 하셨다면 후기📝를 남겨주세요.\n[작성예시] *별 안에 후기를 써주세요.*"
     elif msg == "update":
         msg = "업데이트 완료"
-    elif msg is None:
-        choice = random.choice(video_list)
-        now = time_message()
-        msg = f"✨오늘 {now}메뉴 추천✨\n\n🍳{choice}\n\n메뉴를 다시 찾아볼까요?🥺\n\t랜덤검색 - '네' 또는 'ㅇㅇ' 입력\n\t메뉴검색 - '김치찌개 검색'"
+    elif msg == "register":
+        msg = "요청이 전달됐어요! 조금만 기다려주세요😊"
+    elif msg == "review":
+        msg = "후기가 전달됐어요! 감사합니다🧡"
     elif msg[0] == "*" and msg[-1] == "*":
         msg = "📨 사용자 후기\n\n" + msg[1:-1]
     elif msg[0] == "[":
@@ -73,9 +80,9 @@ def crawl_url(query=None):
     video_list = []
     api_key = os.environ["KEY"]
 
-    """특정메뉴 검색, 2개만 반환"""
+    """특정메뉴 검색, 3개만 반환"""
     if query is not None:
-        url = f"https://www.googleapis.com/youtube/v3/search?key={api_key}&part=id&channelId=UCyn-K7rZLXjGl7VXGweIlcA&maxResults=2&q={query}&type=video"
+        url = f"https://www.googleapis.com/youtube/v3/search?key={api_key}&part=id&channelId=UCyn-K7rZLXjGl7VXGweIlcA&maxResults=3&q={query}&type=video"
         resp = requests.get(url).json()
         items = resp["items"]
 
