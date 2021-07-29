@@ -1,4 +1,5 @@
 import requests
+import random
 import boto3
 import os
 import json
@@ -10,10 +11,10 @@ def lambda_handler(event, context):
     id_list = json.loads(os.environ["ID_LIST"]).values()
     try:
         if "detail-type" in event and event["detail-type"] == "Scheduled Event":
-            video_set = get_videoset()
+            video_list = get_video()
             for id in id_list:
                 chat_id = id
-                send_message(chat_id, video_set)
+                send_message(chat_id, video_list)
         else:
             resp = json.loads(event["body"])
             user_text = resp["message"]["text"]
@@ -25,12 +26,12 @@ def lambda_handler(event, context):
                     update_list()
                     send_message(chat_id, msg="update")
                 elif user_text == "네" or user_text == "ㅇㅇ":
-                    video_set = get_videoset()
-                    send_message(chat_id, video_set)
+                    video_list = get_video()
+                    send_message(chat_id, video_list)
                     send_message(chat_id, msg="feedback")
                 elif user_text[-2:] == "검색":
-                    video_set = crawl_url(user_text[:-2].strip())
-                    send_message(chat_id, video_set)
+                    video_list = crawl_url(user_text[:-2].strip())
+                    send_message(chat_id, video_list)
                     send_message(chat_id, msg="feedback")
                 elif user_text[0] == "*" and user_text[-1] == "*":
                     send_message(os.environ["ME"], msg=user_text)
@@ -43,7 +44,7 @@ def lambda_handler(event, context):
         send_message(chat_id, msg=str(e))
 
 
-def send_message(chat_id, video_set=None, msg=None):
+def send_message(chat_id, video_list=None, msg=None):
     token = os.environ["BOT_TOKEN"]
 
     if msg == "'items'":
@@ -55,9 +56,9 @@ def send_message(chat_id, video_set=None, msg=None):
     elif msg == "update":
         msg = "업데이트 완료"
     elif msg is None:
-        video_pop = video_set.pop()
+        choice = random.choice(video_list)
         now = time_message()
-        msg = f"✨오늘 {now}메뉴 추천✨\n\n🍳{video_pop}\n\n메뉴를 다시 찾아볼까요?🥺\n\t랜덤검색 - '네' 또는 'ㅇㅇ' 입력\n\t메뉴검색 - '김치찌개 검색'"
+        msg = f"✨오늘 {now}메뉴 추천✨\n\n🍳{choice}\n\n메뉴를 다시 찾아볼까요?🥺\n\t랜덤검색 - '네' 또는 'ㅇㅇ' 입력\n\t메뉴검색 - '김치찌개 검색'"
     elif msg[0] == "*" and msg[-1] == "*":
         msg = "📨 사용자 후기\n\n" + msg[1:-1]
     elif msg[0] == "[":
@@ -82,7 +83,7 @@ def crawl_url(query=None):
             videoId = item["id"]["videoId"]
             url = f"https://www.youtube.com/watch?v={videoId}"
             video_list.append(url)
-        return set(video_list)
+        return video_list
 
     """업데이트 시 전체 크롤링"""
     nextPageToken = ""
@@ -119,12 +120,12 @@ def time_message():
         return "야식"
 
 
-def get_videoset():
+def get_video():
     s3 = boto3.client("s3")
 
     obj = s3.get_object(Bucket=os.environ["BUCKET"], Key=os.environ["BUCKET_KEY"])
     data = json.loads(obj["Body"].read())
-    return set(data["urls"])
+    return data["urls"]
 
 
 def update_list():
@@ -134,4 +135,3 @@ def update_list():
     s3.put_object(
         Bucket=os.environ["BUCKET"], Body=Body, Key=os.environ["BUCKET_KEY"], ContentType="json"
     )
-    return Body
