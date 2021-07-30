@@ -3,9 +3,9 @@
 ```
 AWS Lambda 활용한 텔레그램 챗봇
 ```
-<img width="500" alt="데모이미지" src="https://user-images.githubusercontent.com/42771578/127122689-f03b5b30-d8d6-481d-9bcf-cac449f4eff3.PNG">
 
-<br>
+&nbsp;&nbsp;<img width="190" alt="추천" src="https://user-images.githubusercontent.com/42771578/127655177-35eaa875-562f-483b-8269-0e018655a707.png">&nbsp;&nbsp;&nbsp;&nbsp;<img width="190" alt="이벤트" src="https://user-images.githubusercontent.com/42771578/127655190-99f1217c-f2f0-409c-bf34-fb242db864c8.png">
+<br><br>
 
 #### :rice_ball: 개발 배경<br>
 ```
@@ -18,14 +18,17 @@ AWS Lambda 활용한 텔레그램 챗봇
 #### :ramen: 사전 준비<br>
 - `Telegram bot 생성 + bot_token과 chat_id 파싱`
 - `YouTube Data API v3 KEY 발급`
-- `Sever-less 컴퓨팅 자원  예) AWS Lambda`
+- `AWS 계정 (Lambda, S3, API Gateway, EventBridge 사용)`
 <br>
 
 #### :curry: 실행 방법<br>
 ```
   1) AWS Lambda 에 bot.py 업로드
-  2) API Gateway와 연동하여 Webhook 세팅
-  3) CloudWatch events 트리거 추가하여 원하는 시간대에 알람 요청 (선택)
+  2) AWS S3 버킷 생성 및 권한설정
+  3) API Gateway와 연동하여 Webhook 세팅
+  4) CloudWatch events 트리거 추가하여 원하는 시간대에 알람 요청 (선택)
 ```
+##### &nbsp; [:white_check_mark: AWS 상세 세팅방법](https://github.com/myejin/Menu_Selector_Bot/blob/main/details.md)
+  
 <img width="382" alt="트리거" src="https://user-images.githubusercontent.com/42771578/126987497-674a63ab-beec-451f-81c1-a518381aa597.PNG">
 <br>
