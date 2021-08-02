@@ -14,7 +14,7 @@ def lambda_handler(event, context):
             video_list = get_video()
             for id in id_list:
                 chat_id = id
-                send_message(chat_id, video_list)
+                send_message(chat_id, video_list, msg="feedback")
         else:
             resp = json.loads(event["body"])
             user_text = resp["message"]["text"]
@@ -82,7 +82,7 @@ def crawl_url(query=None):
 
     """특정메뉴 검색, 3개만 반환"""
     if query is not None:
-        url = f"https://www.googleapis.com/youtube/v3/search?key={api_key}&part=id&channelId=UCyn-K7rZLXjGl7VXGweIlcA&maxResults=3&q={query}&type=video"
+        url = f"https://www.googleapis.com/youtube/v3/search?key={api_key}&part=id&channelId=UCyn-K7rZLXjGl7VXGweIlcA&maxResults=3&q=간단한+{query}+요리&type=video"
         resp = requests.get(url).json()
         items = resp["items"]
 
