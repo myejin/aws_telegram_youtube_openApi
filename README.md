@@ -4,7 +4,7 @@
 AWS Lambda 활용한 텔레그램 챗봇
 ```
 
-&nbsp;&nbsp;<img width="190" alt="추천" src="https://user-images.githubusercontent.com/42771578/127655177-35eaa875-562f-483b-8269-0e018655a707.png">&nbsp;&nbsp;&nbsp;&nbsp;<img width="190" alt="이벤트" src="https://user-images.githubusercontent.com/42771578/127655190-99f1217c-f2f0-409c-bf34-fb242db864c8.png">
+&nbsp;&nbsp;<img width="190" alt="추천" src="https://user-images.githubusercontent.com/42771578/127655177-35eaa875-562f-483b-8269-0e018655a707.png">&nbsp;&nbsp;&nbsp;&nbsp;<img width="190" alt="이벤트" src="https://user-images.githubusercontent.com/42771578/127655190-99f1217c-f2f0-409c-bf34-fb242db864c8.png">&nbsp;&nbsp;<img width="190" alt="후기" src="https://user-images.githubusercontent.com/42771578/135743231-b45dc93f-109a-4045-83fa-f7b3a1e8f160.png">
 <br><br>
 
 #### :rice_ball: 개발 배경<br>
